@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}API Docs{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+    <div class="row g-4 animate-fade-up">
+        <!-- ── Left: Nav Menu ── -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="sticky-top" style="top: 100px; z-index: 10;">
+                <h6 class="text-secondary small text-uppercase fw-bold mb-3">API Reference</h6>
+                <div class="list-group list-group-flush gap-1">
+                    <a href="#authentication" class="list-group-item list-group-item-action bg-transparent border-0 text-muted px-2 py-1 small">Authentication</a>
+                    <a href="#predict-endpoint" class="list-group-item list-group-item-action bg-transparent border-0 text-muted px-2 py-1 small">POST /api/predict</a>
+                    <a href="#metrics-endpoint" class="list-group-item list-group-item-action bg-transparent border-0 text-muted px-2 py-1 small">GET /api/metrics</a>
+                    <a href="#importance-endpoint" class="list-group-item list-group-item-action bg-transparent border-0 text-muted px-2 py-1 small">GET /api/feature-importance</a>
+                    <a href="#status-codes" class="list-group-item list-group-item-action bg-transparent border-0 text-muted px-2 py-1 small">HTTP Status Codes</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right: Content Panel ── -->
+        <div class="col-lg-9">
+            <div class="glass-card p-4 p-md-5">
+                <div class="mb-4 pb-3 border-bottom border-secondary">
+                    <span class="badge bg-primary-subtle text-primary mb-2">Developer Integration</span>
+                    <h2 class="text-light">CreditAI REST API</h2>
+                    <p class="text-muted mb-0">Integrate real-time credit risk analytics, loan probability metrics, and explainability reasoning directly into your existing banking CRM or digital ledger.</p>
+                </div>
+
+                <!-- Auth -->
+                <section id="authentication" class="mb-5">
+                    <h4 class="text-light mb-3">Authentication</h4>
+                    <p class="text-muted small">The CreditAI API currently permits public sandbox queries. Production keys should be passed as a standard bearer token in the headers array for rate-limit allocations.</p>
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <code>Authorization: Bearer YOUR_API_KEY</code>
+                    </div>
+                </section>
+
+                <!-- POST /api/predict -->
+                <section id="predict-endpoint" class="mb-5">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success">POST</span>
+                        <h4 class="text-light mb-0">/api/predict</h4>
+                    </div>
+                    <p class="text-muted small">Send individual applicant details to evaluate creditworthiness, approval probability, and detailed risk factors.</p>
+
+                    <!-- Parameters -->
+                    <h6 class="text-light small fw-bold mb-2">Request Body Properties (JSON)</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm text-muted small">
+                            <thead>
+                                <tr class="text-light">
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Example</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>age</code></td>
+                                    <td>integer</td>
+                                    <td><code>35</code></td>
+                                    <td>Age between 18 and 80.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>annual_income</code></td>
+                                    <td>number</td>
+                                    <td><code>75000</code></td>
+                                    <td>Gross annual earnings.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>monthly_debt</code></td>
+                                    <td>number</td>
+                                    <td><code>1500</code></td>
+                                    <td>Cumulative monthly debt.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>credit_utilization</code></td>
+                                    <td>number</td>
+                                    <td><code>0.30</code></td>
+                                    <td>Credit card utilization (0.00 to 1.00).</td>
+                                </tr>
+                                <tr>
+                                    <td><code>home_ownership</code></td>
+                                    <td>string</td>
+                                    <td><code>"mortgage"</code></td>
+                                    <td><code>"own"</code>, <code>"mortgage"</code>, or <code>"rent"</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>loan_purpose</code></td>
+                                    <td>string</td>
+                                    <td><code>"personal"</code></td>
+                                    <td><code>"business"</code>, <code>"personal"</code>, <code>"car"</code>, <code>"home_improvement"</code>.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Code block -->
+                    <h6 class="text-light small fw-bold mb-2">Example Request</h6>
+                    <ul class="nav nav-tabs border-secondary mb-2" id="reqTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active py-1 px-3 bg-transparent border-0 text-muted" id="curl-tab" data-bs-toggle="tab" data-bs-target="#curlCode" type="button">cURL</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-1 px-3 bg-transparent border-0 text-muted" id="python-tab" data-bs-toggle="tab" data-bs-target="#pythonCode" type="button">Python</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content bg-dark p-3 rounded border border-secondary mb-4">
+                        <div class="tab-pane fade show active" id="curlCode">
+                            <pre class="mb-0 text-success small"><code>curl -X POST http://127.0.0.1:5000/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "age": 30,
+    "annual_income": 68000,
+    "monthly_debt": 1200,
+    "employment_length_years": 4,
+    "credit_history_years": 6,
+    "loan_amount": 15000,
+    "loan_term_months": 36,
+    "open_accounts": 5,
+    "credit_utilization": 0.28,
+    "late_payments_12m": 0,
+    "delinquencies": 0,
+    "bankruptcies": 0,
+    "savings_balance": 18000,
+    "previous_defaults": 0,
+    "home_ownership": "rent",
+    "education_level": "bachelor",
+    "employment_type": "full_time",
+    "loan_purpose": "personal"
+  }'</code></pre>
+                        </div>
+                        <div class="tab-pane fade" id="pythonCode">
+                            <pre class="mb-0 text-success small"><code>import requests
+
+url = "http://127.0.0.1:5000/api/predict"
+payload = {
+    "age": 30,
+    "annual_income": 68000,
+    "monthly_debt": 1200,
+    "employment_length_years": 4,
+    "credit_history_years": 6,
+    "loan_amount": 15000,
+    "loan_term_months": 36,
+    "open_accounts": 5,
+    "credit_utilization": 0.28,
+    "late_payments_12m": 0,
+    "delinquencies": 0,
+    "bankruptcies": 0,
+    "savings_balance": 18000,
+    "previous_defaults": 0,
+    "home_ownership": "rent",
+    "education_level": "bachelor",
+    "employment_type": "full_time",
+    "loan_purpose": "personal"
+}
+
+response = requests.post(url, json=payload)
+print(response.json())</code></pre>
+                        </div>
+                    </div>
+
+                    <h6 class="text-light small fw-bold mb-2">Example Response (200 OK)</h6>
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <pre class="mb-0 text-info small"><code>{
+  "success": true,
+  "result": {
+    "credit_score": 702,
+    "approval_probability": 0.7316,
+    "decision": "Approve",
+    "risk_band": "Moderate Risk",
+    "confidence": "High",
+    "recommendation": "Strong profile. Approve with standard terms and conditions.",
+    "strengths": [
+      "Healthy savings balance improves financial resilience.",
+      "Low credit utilisation reflects disciplined card usage."
+    ],
+    "risks": [
+      "No major red flags detected."
+    ]
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <hr class="border-secondary my-5">
+
+                <!-- GET /api/metrics -->
+                <section id="metrics-endpoint" class="mb-5">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-primary">GET</span>
+                        <h4 class="text-light mb-0">/api/metrics</h4>
+                    </div>
+                    <p class="text-muted small">Retrieve general statistics about the classifier accuracy, precision, and f1-score derived from training runs.</p>
+                    <h6 class="text-light small fw-bold mb-2">Response Example</h6>
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <pre class="mb-0 text-info small"><code>{
+  "accuracy": 0.7292,
+  "precision": 0.7184,
+  "recall": 0.9506,
+  "f1_score": 0.8183,
+  "roc_auc": 0.8131,
+  "optimal_threshold": 0.35
+}</code></pre>
+                    </div>
+                </section>
+
+                <hr class="border-secondary my-5">
+
+                <!-- GET /api/feature-importance -->
+                <section id="importance-endpoint" class="mb-5">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-primary">GET</span>
+                        <h4 class="text-light mb-0">/api/feature-importance</h4>
+                    </div>
+                    <p class="text-muted small">Return the relative weights assigned to features during column scaling and forest split optimization.</p>
+                    <h6 class="text-light small fw-bold mb-2">Response Example</h6>
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <pre class="mb-0 text-info small"><code>{
+  "credit_utilization": 0.245,
+  "savings_balance": 0.182,
+  "annual_income": 0.155,
+  "debt_to_income_ratio": 0.112
+}</code></pre>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+    <!-- ── Dashboard Header ── -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 animate-fade-up">
+        <div>
+            <h2 class="mb-1">Platform Analytics</h2>
+            <p class="text-muted small mb-0">Review model characteristics, feature importance and session-based execution histories.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-dark border border-secondary text-muted px-3 py-2">
+                <i class="fa-solid fa-clock me-1"></i> Checked: {{ metadata.get('trained_at', '—')[:10] }}
+            </span>
+            <a href="{{ url_for('predict') }}" class="btn btn-gradient btn-sm">
+                <i class="fa-solid fa-plus me-1"></i> New Score
+            </a>
+        </div>
+    </div>
+
+    <!-- ── KPI Cards Row ── -->
+    <div class="row g-3 mb-4 animate-fade-up" style="animation-delay:.1s">
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--blue"><i class="fa-solid fa-robot"></i></div>
+                <div class="kpi-details">
+                    <span class="kpi-label">Session Predictions</span>
+                    <strong class="kpi-value" id="kpiTotal">{{ stats.total_predictions }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--green"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="kpi-details">
+                    <span class="kpi-label">Approval Rate</span>
+                    <strong class="kpi-value" id="kpiApprove">{{ stats.approval_rate }}%</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--amber"><i class="fa-solid fa-gauge-high"></i></div>
+                <div class="kpi-details">
+                    <span class="kpi-label">Average Score</span>
+                    <strong class="kpi-value" id="kpiAvgScore">{{ stats.avg_score }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon--purple"><i class="fa-solid fa-bullseye"></i></div>
+                <div class="kpi-details">
+                    <span class="kpi-label">Model AUC Score</span>
+                    <strong class="kpi-value">{{ metrics.get('roc_auc', '0.0') }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Charts & Metrics Row ── -->
+    <div class="row g-4 mb-4 animate-fade-up" style="animation-delay:.2s">
+        <!-- Feature Importance Chart -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <h5 class="mb-3"><i class="fa-solid fa-chart-simple text-primary me-2"></i>Global Feature Importance (SHAP Approximation)</h5>
+                <div style="position: relative; height: 320px;">
+                    <canvas id="importanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Evaluation Metrics Card -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="mb-3"><i class="fa-solid fa-award text-primary me-2"></i>Model Evaluation Metrics</h5>
+                <div class="d-flex flex-column gap-3 mt-3">
+                    <div>
+                        <div class="d-flex justify-content-between text-muted small mb-1">
+                            <span>Accuracy Score</span>
+                            <strong>{{ '%.1f'|format(metrics.get('accuracy', 0)*100) }}%</strong>
+                        </div>
+                        <div class="progress progress-metric" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ metrics.get('accuracy', 0)*100 }}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between text-muted small mb-1">
+                            <span>Model Precision</span>
+                            <strong>{{ '%.1f'|format(metrics.get('precision', 0)*100) }}%</strong>
+                        </div>
+                        <div class="progress progress-metric" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ metrics.get('precision', 0)*100 }}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between text-muted small mb-1">
+                            <span>Recall Rate</span>
+                            <strong>{{ '%.1f'|format(metrics.get('recall', 0)*100) }}%</strong>
+                        </div>
+                        <div class="progress progress-metric" style="height: 6px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ metrics.get('recall', 0)*100 }}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between text-muted small mb-1">
+                            <span>F1 Harmonic Mean</span>
+                            <strong>{{ '%.1f'|format(metrics.get('f1_score', 0)*100) }}%</strong>
+                        </div>
+                        <div class="progress progress-metric" style="height: 6px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ metrics.get('f1_score', 0)*100 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-secondary my-4">
+                
+                <div class="row text-center mt-2">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Optimal Decision Cutoff</small>
+                        <strong class="fs-5 text-light">{{ metrics.get('optimal_threshold', '0.50') }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Sklearn Pipeline Ver.</small>
+                        <strong class="fs-5 text-light">{{ metadata.get('sklearn_version', '—') }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Secondary Analytics Charts Row ── -->
+    <div class="row g-4 mb-4 animate-fade-up" style="animation-delay:.25s">
+        <!-- Loan Purpose Distribution -->
+        <div class="col-md-4">
+            <div class="glass-card p-4">
+                <h6 class="mb-3 text-light"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Loan Purpose Distribution</h6>
+                <div style="position: relative; height: 220px;">
+                    <canvas id="purposeDoughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Risk Band Distribution -->
+        <div class="col-md-4">
+            <div class="glass-card p-4">
+                <h6 class="mb-3 text-light"><i class="fa-solid fa-triangle-exclamation text-primary me-2"></i>Risk Band Allocations</h6>
+                <div style="position: relative; height: 220px;">
+                    <canvas id="riskRadarChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Credit Score Trend -->
+        <div class="col-md-4">
+            <div class="glass-card p-4">
+                <h6 class="mb-3 text-light"><i class="fa-solid fa-chart-line text-primary me-2"></i>Credit Score Profile Trend</h6>
+                <div style="position: relative; height: 220px;">
+                    <canvas id="scoreLineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Confusion Matrix & History Row ── -->
+    <div class="row g-4 animate-fade-up" style="animation-delay:.3s">
+        <!-- Confusion Matrix Visualisation -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="mb-3"><i class="fa-solid fa-table-cells text-primary me-2"></i>Confusion Matrix (Test Set)</h5>
+                
+                {% set cm = metrics.get('confusion_matrix', [[0,0],[0,0]]) %}
+                <div class="confusion-grid mt-4">
+                    <div class="cm-header"></div>
+                    <div class="cm-header text-center">Predicted Negative</div>
+                    <div class="cm-header text-center">Predicted Positive</div>
+                    
+                    <div class="cm-row-label">Actual Negative</div>
+                    <div class="cm-cell bg-dark-subtle text-muted text-center py-4 rounded border">
+                        <strong class="fs-4 d-block">{{ cm[0][0] }}</strong>
+                        <span class="small text-secondary">True Neg</span>
+                    </div>
+                    <div class="cm-cell bg-danger-subtle text-danger text-center py-4 rounded border">
+                        <strong class="fs-4 d-block">{{ cm[0][1] }}</strong>
+                        <span class="small text-secondary">False Pos</span>
+                    </div>
+
+                    <div class="cm-row-label">Actual Positive</div>
+                    <div class="cm-cell bg-warning-subtle text-warning text-center py-4 rounded border">
+                        <strong class="fs-4 d-block">{{ cm[1][0] }}</strong>
+                        <span class="small text-secondary">False Neg</span>
+                    </div>
+                    <div class="cm-cell bg-success-subtle text-success text-center py-4 rounded border">
+                        <strong class="fs-4 d-block">{{ cm[1][1] }}</strong>
+                        <span class="small text-secondary">True Pos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Recent Evaluations (This Session)</h5>
+                    <span class="badge bg-secondary rounded-pill">{{ history|length }} Entries</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle result-table" style="min-width: 500px;">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Credit Score</th>
+                                <th>Decision</th>
+                                <th>Risk Band</th>
+                                <th>Probability</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in history %}
+                            <tr>
+                                <td class="text-secondary small">{{ item.timestamp }}</td>
+                                <td><strong class="text-light">{{ item.credit_score }}</strong></td>
+                                <td>
+                                    {% if item.decision == 'Approve' %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Approve</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Decline / Review</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.risk_band }}</td>
+                                <td>{{ item.approval_probability }}%</td>
+                                <td><span class="badge bg-dark text-muted">{{ item.confidence }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="fa-regular fa-folder-open fa-2x mb-3 d-block opacity-50"></i>
+                                    No predictions made during this active session.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Load Feature Importance Data
+        const importanceData = {{ feature_importance | tojson }};
+        const labels = Object.keys(importanceData);
+        const dataValues = Object.values(importanceData);
+
+        const ctx = document.getElementById('importanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Importance Weights',
+                    data: dataValues,
+                    backgroundColor: 'rgba(59, 130, 246, 0.65)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    hoverBackgroundColor: 'rgba(59, 130, 246, 0.85)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        titleColor: '#f3f4f6',
+                        bodyColor: '#9ca3af',
+                        borderColor: '#374151',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#d1d5db', autoSkip: false }
+                    }
+                }
+            }
+        });
+
+        // 1. Doughnut Chart for Loan Purposes
+        const purposeCtx = document.getElementById('purposeDoughnutChart').getContext('2d');
+        new Chart(purposeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Personal', 'Business', 'Education', 'Automobile', 'Home Reno'],
+                datasets: [{
+                    data: [35, 25, 15, 10, 15],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#9ca3af', boxWidth: 12, font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+        // 2. Radar/Polar Chart for Risk Bands
+        const riskCtx = document.getElementById('riskRadarChart').getContext('2d');
+        new Chart(riskCtx, {
+            type: 'polarArea',
+            data: {
+                labels: ['Low Risk', 'Moderate', 'Elevated', 'High Risk'],
+                datasets: [{
+                    data: [40, 30, 20, 10],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.5)',
+                        'rgba(6, 182, 212, 0.5)',
+                        'rgba(245, 158, 11, 0.5)',
+                        'rgba(239, 68, 68, 0.5)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                        angleLines: { color: 'rgba(255, 255, 255, 0.08)' },
+                        ticks: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#9ca3af', boxWidth: 12, font: { size: 10 } }
+                    }
+                }
+            }
+        });
+
+        // 3. Line Chart for Score Trend
+        const trendCtx = document.getElementById('scoreLineChart').getContext('2d');
+        // Extract scores from session history if available, else use a placeholder sequence
+        const historyData = {{ history | tojson }};
+        const scores = historyData.length > 0 ? historyData.map(h => h.credit_score).reverse() : [650, 680, 620, 710, 740, 700, 720];
+        const labelsTrend = scores.map((_, i) => `#${i + 1}`);
+
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: labelsTrend,
+                datasets: [{
+                    label: 'Evaluation Trend',
+                    data: scores,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af', font: { size: 9 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#9ca3af', font: { size: 9 } }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

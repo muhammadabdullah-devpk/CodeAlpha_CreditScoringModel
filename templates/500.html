@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}500 Internal Error{% endblock %}
+
+{% block content %}
+<div class="container-xl d-flex flex-column align-items-center justify-content-center min-vh-75 text-center animate-fade-up">
+    <div class="text-danger mb-4">
+        <i class="fa-solid fa-bug-slash fa-5x animate-pulse"></i>
+    </div>
+    <h1 class="display-3 fw-bold text-light mb-2">500</h1>
+    <h4 class="mb-3 text-secondary">Execution Pipeline Fault</h4>
+    <p class="text-muted max-w-350 mb-4">An error occurred within the model preprocessing, scaling, or inference operations. Check application terminal logs for traceback details.</p>
+    <a href="{{ url_for('home') }}" class="btn btn-gradient px-4">
+        <i class="fa-solid fa-house me-1"></i> Return Dashboard
+    </a>
+</div>
+{% endblock %}

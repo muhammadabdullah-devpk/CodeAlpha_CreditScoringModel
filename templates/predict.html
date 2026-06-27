@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% block title %}Predict{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+    <div class="row g-4">
+        <!-- ── Left: Input Form ── -->
+        <div class="col-lg-7">
+            <div class="glass-card p-4 animate-fade-up">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="step-icon step-icon-primary"><i class="fa-solid fa-file-invoice"></i></div>
+                    <div>
+                        <h4 class="mb-1">Applicant Scoring Form</h4>
+                        <p class="text-muted small mb-0">Fill in the fields below. Hover over labels for explanations.</p>
+                    </div>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>{{ error }}</div>
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('predict') }}" id="predictForm" class="needs-validation" novalidate>
+                    <!-- Group 1: Personal & Demographics -->
+                    <h5 class="form-group-title"><i class="fa-solid fa-user me-2 text-primary"></i>Personal & Demographics</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Age of the applicant in years. Eligible range is 18 to 80.">
+                                Age (Years) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
+                                <input type="number" name="age" class="form-control" value="{{ form_data.get('age', '30') }}" min="18" max="80" required>
+                                <div class="invalid-feedback">Required (18-80).</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Highest level of education completed by the applicant.">
+                                Education Level <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <select name="education_level" class="form-select" required>
+                                <option value="high_school" {% if form_data.get('education_level') == 'high_school' %}selected{% endif %}>High School</option>
+                                <option value="bachelor" {% if form_data.get('education_level', 'bachelor') == 'bachelor' %}selected{% endif %}>Bachelor's Degree</option>
+                                <option value="master" {% if form_data.get('education_level') == 'master' %}selected{% endif %}>Master's Degree</option>
+                                <option value="other" {% if form_data.get('education_level') == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Group 2: Employment & Income -->
+                    <h5 class="form-group-title"><i class="fa-solid fa-briefcase me-2 text-primary"></i>Employment &amp; Income</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Total annual gross income before taxes.">
+                                Annual Income ($) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-dollar-sign"></i></span>
+                                <input type="number" name="annual_income" class="form-control" value="{{ form_data.get('annual_income', '68000') }}" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Employment contract type of applicant.">
+                                Employment Type <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <select name="employment_type" class="form-select" required>
+                                <option value="full_time" {% if form_data.get('employment_type', 'full_time') == 'full_time' %}selected{% endif %}>Full Time</option>
+                                <option value="part_time" {% if form_data.get('employment_type') == 'part_time' %}selected{% endif %}>Part Time</option>
+                                <option value="self_employed" {% if form_data.get('employment_type') == 'self_employed' %}selected{% endif %}>Self Employed</option>
+                                <option value="contract" {% if form_data.get('employment_type') == 'contract' %}selected{% endif %}>Contract</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Number of years at the current job.">
+                                Employment Length (Years) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-clock"></i></span>
+                                <input type="number" name="employment_length_years" class="form-control" value="{{ form_data.get('employment_length_years', '4') }}" min="0" step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Current housing arrangements.">
+                                Home Ownership <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <select name="home_ownership" class="form-select" required>
+                                <option value="rent" {% if form_data.get('home_ownership') == 'rent' %}selected{% endif %}>Rent</option>
+                                <option value="mortgage" {% if form_data.get('home_ownership', 'mortgage') == 'mortgage' %}selected{% endif %}>Mortgage</option>
+                                <option value="own" {% if form_data.get('home_ownership') == 'own' %}selected{% endif %}>Own</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Group 3: Debt & Credit Profile -->
+                    <h5 class="form-group-title"><i class="fa-solid fa-credit-card me-2 text-primary"></i>Debt &amp; Credit Profile</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Sum of all monthly debt obligations (loans, cards, etc.).">
+                                Monthly Debt ($) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-wallet"></i></span>
+                                <input type="number" name="monthly_debt" class="form-control" value="{{ form_data.get('monthly_debt', '1200') }}" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Total history of credit activities in years.">
+                                Credit History Length (Years) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-calendar-check"></i></span>
+                                <input type="number" name="credit_history_years" class="form-control" value="{{ form_data.get('credit_history_years', '6') }}" min="0.5" step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Total amount of balance currently in savings account.">
+                                Savings Balance ($) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-piggy-bank"></i></span>
+                                <input type="number" name="savings_balance" class="form-control" value="{{ form_data.get('savings_balance', '18000') }}" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Number of open credit lines/accounts.">
+                                Open Credit Accounts <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-list-ol"></i></span>
+                                <input type="number" name="open_accounts" class="form-control" value="{{ form_data.get('open_accounts', '5') }}" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label d-flex justify-content-between align-items-center" data-bs-toggle="tooltip" title="Percentage of total credit limit currently used (0 to 1).">
+                                <span>Credit Utilization Ratio <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i></span>
+                                <span class="badge bg-primary" id="utilValBadge">0.28</span>
+                            </label>
+                            <input type="range" name="credit_utilization" id="creditUtilizationRange" class="form-range" min="0" max="1" step="0.01" value="{{ form_data.get('credit_utilization', '0.28') }}" oninput="document.getElementById('utilValBadge').innerText=this.value" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Number of late payments over the past 12 months.">
+                                Late Payments (Past 12m) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                                <input type="number" name="late_payments_12m" class="form-control" value="{{ form_data.get('late_payments_12m', '0') }}" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Total number of delinquencies on record.">
+                                Delinquencies <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <input type="number" name="delinquencies" class="form-control" value="{{ form_data.get('delinquencies', '0') }}" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Number of prior bankruptcies on record.">
+                                Bankruptcies <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <input type="number" name="bankruptcies" class="form-control" value="{{ form_data.get('bankruptcies', '0') }}" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Number of prior defaults on loans or credit cards.">
+                                Previous Defaults <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <input type="number" name="previous_defaults" class="form-control" value="{{ form_data.get('previous_defaults', '0') }}" min="0" required>
+                        </div>
+                    </div>
+
+                    <!-- Group 4: Loan Details -->
+                    <h5 class="form-group-title"><i class="fa-solid fa-hand-holding-dollar me-2 text-primary"></i>Requested Loan Details</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Total amount of loan requested.">
+                                Loan Amount ($) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-sack-dollar"></i></span>
+                                <input type="number" name="loan_amount" class="form-control" value="{{ form_data.get('loan_amount', '15000') }}" min="100" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Term length of the loan in months.">
+                                Loan Term (Months) <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
+                                <input type="number" name="loan_term_months" class="form-control" value="{{ form_data.get('loan_term_months', '36') }}" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label" data-bs-toggle="tooltip" title="Intended use-case of the requested loan.">
+                                Loan Purpose <i class="fa-solid fa-circle-info text-muted fa-xs ms-1"></i>
+                            </label>
+                            <select name="loan_purpose" class="form-select" required>
+                                <option value="personal" {% if form_data.get('loan_purpose', 'personal') == 'personal' %}selected{% endif %}>Personal Loan</option>
+                                <option value="education" {% if form_data.get('loan_purpose') == 'education' %}selected{% endif %}>Education Loan</option>
+                                <option value="business" {% if form_data.get('loan_purpose') == 'business' %}selected{% endif %}>Business Development</option>
+                                <option value="car" {% if form_data.get('loan_purpose') == 'car' %}selected{% endif %}>Automobile Purchase</option>
+                                <option value="home_improvement" {% if form_data.get('loan_purpose') == 'home_improvement' %}selected{% endif %}>Home Renovation &amp; Improvement</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-gradient flex-grow-1" id="btnSubmit">
+                            <i class="fa-solid fa-gears me-1"></i> Score Applicant
+                        </button>
+                        <button type="button" class="btn btn-glass" onclick="resetPredictForm()" title="Clear form entries">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Processing Overlay -->
+                <div class="overlay-loader" id="loaderOverlay">
+                    <div class="text-center text-white">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <h5>Analysing Credit Parameters...</h5>
+                        <p class="text-muted small">Running inference pipeline &amp; explainable logic</p>
+                        <div class="progress mt-2" style="height: 6px; width: 200px; margin: 0 auto;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right: Results ── -->
+        <div class="col-lg-5">
+            {% if result %}
+            <div class="glass-card p-4 result-box animate-fade-up">
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()" title="Print report or export to PDF format">
+                            <i class="fa-solid fa-print me-1"></i> Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyResultToClipboard()" title="Copy prediction result summary">
+                            <i class="fa-regular fa-copy me-1"></i> Copy
+                        </button>
+                    </div>
+
+                <!-- Decision Badge -->
+                <div class="text-center mb-4">
+                    {% if result.decision == 'Approve' %}
+                    <div class="decision-badge badge-approve mb-3">
+                        <i class="fa-solid fa-circle-check me-2"></i> APPROVED
+                    </div>
+                    {% else %}
+                    <div class="decision-badge badge-decline mb-3">
+                        <i class="fa-solid fa-circle-xmark me-2"></i> REVIEW / DECLINE
+                    </div>
+                    {% endif %}
+                    <p class="text-muted small mb-0">Model Confidence Band: <strong class="text-light">{{ result.confidence }}</strong></p>
+                </div>
+
+                <!-- Gauge Score Area -->
+                <div class="gauge-container text-center mb-4 position-relative">
+                    <canvas id="gaugeCanvas" width="220" height="120"></canvas>
+                    <div class="gauge-text-overlay">
+                        <h2 class="mb-0 fw-bold" id="creditScoreValue" data-score="{{ result.credit_score }}">{{ result.credit_score }}</h2>
+                        <span class="text-muted small">Credit Score</span>
+                    </div>
+                </div>
+
+                <!-- Metrics breakdown cards -->
+                <div class="row g-2 mb-4 text-center">
+                    <div class="col-6">
+                        <div class="metric-card-mini">
+                            <span class="text-muted small d-block">Approval Prob.</span>
+                            <strong class="fs-5 text-light">{{ '%.1f'|format(result.approval_probability * 100) }}%</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card-mini">
+                            <span class="text-muted small d-block">Risk Profile</span>
+                            {% if result.risk_band == 'Low Risk' %}
+                            <strong class="fs-5 text-success">{{ result.risk_band }}</strong>
+                            {% elif result.risk_band == 'Moderate Risk' %}
+                            <strong class="fs-5 text-info">{{ result.risk_band }}</strong>
+                            {% elif result.risk_band == 'Elevated Risk' %}
+                            <strong class="fs-5 text-warning">{{ result.risk_band }}</strong>
+                            {% else %}
+                            <strong class="fs-5 text-danger">{{ result.risk_band }}</strong>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendation box -->
+                <div class="card bg-dark-subtle border-0 mb-4">
+                    <div class="card-body p-3">
+                        <h6 class="card-title text-light mb-1"><i class="fa-solid fa-lightbulb text-warning me-1"></i> Business Guidance</h6>
+                        <p class="card-text text-muted small mb-0">{{ result.recommendation }}</p>
+                    </div>
+                </div>
+
+                <!-- Insights columns -->
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h6 class="text-success"><i class="fa-solid fa-circle-arrow-up me-2"></i>Positive Factors (Strengths)</h6>
+                        <ul class="list-unstyled list-check text-muted small ps-0">
+                            {% for item in result.strengths %}
+                            <li><i class="fa-solid fa-check text-success me-2"></i>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-12">
+                        <h6 class="text-danger"><i class="fa-solid fa-circle-arrow-down me-2"></i>Risk Flags</h6>
+                        <ul class="list-unstyled list-check text-muted small ps-0">
+                            {% for item in result.risks %}
+                            <li><i class="fa-solid fa-exclamation text-danger me-2"></i>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Placeholder state -->
+            <div class="glass-card p-5 text-center d-flex flex-column align-items-center justify-content-center h-100 min-vh-50 animate-fade-up">
+                <div class="mb-4 text-muted">
+                    <i class="fa-solid fa-chart-pie fa-4x opacity-50"></i>
+                </div>
+                <h5>Generate Credit Evaluation</h5>
+                <p class="text-muted small max-w-350">Provide applicant details on the left and submit the scoring form to generate an explainable assessment.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Init gauge if canvas exists
+        const canvas = document.getElementById("gaugeCanvas");
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            const scoreVal = parseInt(document.getElementById("creditScoreValue").getAttribute("data-score"), 10);
+            
+            // Map 300-850 to 0-1 range
+            let percent = (scoreVal - 300) / (850 - 300);
+            if (percent < 0) percent = 0;
+            if (percent > 1) percent = 1;
+
+            // Draw arc gauge
+            const x = canvas.width / 2;
+            const y = canvas.height - 10;
+            const radius = 90;
+            const startAngle = Math.PI;
+            const endAngle = 2 * Math.PI;
+
+            // Clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw track (Grey)
+            ctx.beginPath();
+            ctx.arc(x, y, radius, startAngle, endAngle);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.lineWidth = 14;
+            ctx.stroke();
+
+            // Draw colored segment
+            ctx.beginPath();
+            ctx.arc(x, y, radius, startAngle, startAngle + (Math.PI * percent));
+            
+            // Gradient color based on score
+            let color = "#ef4444"; // Bad
+            if (scoreVal >= 700) color = "#10b981"; // Good
+            else if (scoreVal >= 600) color = "#06b6d4"; // Moderate
+            else if (scoreVal >= 500) color = "#f59e0b"; // Elevated
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 14;
+            ctx.lineCap = "round";
+            ctx.stroke();
+        }
+
+        // Handle Form Loading Overlay
+        const form = document.getElementById("predictForm");
+        const loader = document.getElementById("loaderOverlay");
+        if (form && loader) {
+            form.addEventListener("submit", function(event) {
+                if (form.checkValidity()) {
+                    loader.classList.add("active");
+                }
+            });
+        }
+    });
+
+    function resetPredictForm() {
+        const form = document.getElementById("predictForm");
+        if (form) {
+            form.reset();
+            toastNotify("Form entries reset successfully.");
+        }
+    }
+
+    function copyResultToClipboard() {
+        const score = document.getElementById("creditScoreValue") ? document.getElementById("creditScoreValue").innerText : "N/A";
+        const badge = document.querySelector(".decision-badge") ? document.querySelector(".decision-badge").innerText.trim() : "N/A";
+        const risk = document.querySelector(".metric-card-mini strong") ? document.querySelectorAll(".metric-card-mini strong")[1].innerText : "N/A";
+        
+        const summaryText = `CreditAI Evaluation Summary:\n-----------------------------\nDecision: ${badge}\nCredit Score: ${score}\nRisk Band: ${risk}\nGenerated: ${new Date().toLocaleString()}`;
+        
+        navigator.clipboard.writeText(summaryText).then(function() {
+            toastNotify("Scoring summary copied to clipboard!", "success");
+        }, function(err) {
+            toastNotify("Failed to copy text.", "danger");
+        });
+    }
+</script>
+{% endblock %}

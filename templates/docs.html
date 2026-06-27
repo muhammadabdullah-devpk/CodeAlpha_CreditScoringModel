@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Methodology & Documentation{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+    <div class="glass-card p-4 p-md-5 animate-fade-up">
+        <div class="mb-4 pb-3 border-bottom border-secondary">
+            <span class="badge bg-primary-subtle text-primary mb-2">Technical Documentation</span>
+            <h2 class="text-light">CreditAI Architecture &amp; Methodology</h2>
+            <p class="text-muted mb-0">Learn how CreditAI pre-processes, models, calibrates and scores financial portfolios.</p>
+        </div>
+
+        <!-- 1. Dataset -->
+        <section class="mb-5">
+            <h4 class="text-light mb-3"><i class="fa-solid fa-database text-primary me-2"></i>1. Dataset &amp; Generation</h4>
+            <p class="text-muted">The model is trained on a synthetic representation of institutional consumer borrowing records containing 8,000 samples. The dataset includes numerical attributes (Income, Savings, Age, Debt, Prior Defaults, Utilization, etc.) and categorical tags (Education, Homeownership type, Employment type, Loan purpose).</p>
+        </section>
+
+        <!-- 2. Pre-processing & Pipelines -->
+        <section class="mb-5">
+            <h4 class="text-light mb-3"><i class="fa-solid fa-gears text-primary me-2"></i>2. Feature Engineering &amp; Pre-processing</h4>
+            <p class="text-muted">We construct four major derived ratio fields to reflect borrowing risk metrics:</p>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <strong class="text-light d-block small">Debt to Income Ratio (DTI)</strong>
+                        <span class="text-muted small">DTI = (Monthly Debt * 12) / Annual Income</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <strong class="text-light d-block small">Loan to Income Ratio (LTI)</strong>
+                        <span class="text-muted small">LTI = Loan Amount / Annual Income</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <strong class="text-light d-block small">Payment Burden Ratio</strong>
+                        <span class="text-muted small">Burden = (Loan Amount / Term) / (Annual Income / 12)</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <strong class="text-light d-block small">Stability Score</strong>
+                        <span class="text-muted small">Reflects combined Job Tenure, Credit History Length, and employment stability flags.</span>
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted">A scikit-learn <code>ColumnTransformer</code> handles missing data via median/mode imputers and scales continuous parameters using a <code>StandardScaler</code>, while categorical fields are one-hot encoded.</p>
+        </section>
+
+        <!-- 3. Modeling -->
+        <section class="mb-5">
+            <h4 class="text-light mb-3"><i class="fa-solid fa-microchip text-primary me-2"></i>3. Classification Engine</h4>
+            <p class="text-muted">An ensemble <strong>RandomForestClassifier</strong> comprising 200 trees is fitted to the pre-processed input matrices. We apply balanced subsample weighting to handle positive/negative class frequency imbalances.</p>
+        </section>
+
+        <!-- 4. Threshold tuning -->
+        <section class="mb-5">
+            <h4 class="text-light mb-3"><i class="fa-solid fa-sliders text-primary me-2"></i>4. Threshold Calibration</h4>
+            <p class="text-muted">Instead of standard default classification boundaries (0.5), we scan candidate decision thresholds over the validation dataset to optimize a blended metric function:</p>
+            <div class="bg-dark p-3 rounded border border-secondary text-center">
+                <code class="text-success fs-5">Blended Score = 0.55 * F1 + 0.25 * Recall + 0.20 * Precision</code>
+            </div>
+            <p class="text-muted mt-3">This strategy minimizes false approvals while preserving standard acceptance throughput.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}

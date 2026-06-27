@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Batch Scoring{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+    <div class="row g-4">
+        <!-- ── Left: Upload Control ── -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 animate-fade-up">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="step-icon step-icon-primary"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <div>
+                        <h4 class="mb-1">Batch Processor</h4>
+                        <p class="text-muted small mb-0">Evaluate credit-worthiness profiles in bulk format.</p>
+                    </div>
+                </div>
+
+                <!-- Template Download Card -->
+                <div class="card bg-dark-subtle border-0 mb-4">
+                    <div class="card-body p-3">
+                        <h6 class="card-title text-light mb-1"><i class="fa-solid fa-download text-primary me-1"></i> Format Template</h6>
+                        <p class="card-text text-muted small mb-3">Ensure your CSV schema aligns with standard scoring formats.</p>
+                        <a href="{{ url_for('download_sample') }}" class="btn btn-sm btn-outline-light w-100">
+                            <i class="fa-solid fa-file-csv me-1"></i> Get Sample CSV
+                        </a>
+                    </div>
+                </div>
+
+                <!-- File Drag & Drop Zone -->
+                <form method="POST" enctype="multipart/form-data" id="batchUploadForm">
+                    <div class="upload-zone text-center p-4 border rounded cursor-pointer" id="dropZone">
+                        <input type="file" name="file" id="fileInput" accept=".csv" class="d-none" required>
+                        <div class="upload-zone-content">
+                            <i class="fa-solid fa-file-csv fa-3x text-primary mb-3"></i>
+                            <h6 class="mb-1 text-light">Drag &amp; Drop CSV File</h6>
+                            <p class="text-muted small">Or click here to browse files</p>
+                        </div>
+                    </div>
+                    <div class="selected-file-area d-none mt-3 p-3 bg-dark-subtle border rounded" id="selectedFileArea">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-success fs-4"></i>
+                                <div>
+                                    <span class="d-block text-light small fw-bold text-truncate" id="fileName" style="max-width: 180px;">filename.csv</span>
+                                    <span class="text-muted small" id="fileSize">0 KB</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm text-danger" onclick="clearSelectedFile()" title="Remove file selection">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-gradient w-100 mt-4 d-none" id="btnRunBatch">
+                        <i class="fa-solid fa-gears me-1"></i> Run Batch Prediction
+                    </button>
+                </form>
+
+                <!-- Loading Animation -->
+                <div class="overlay-loader" id="batchLoader">
+                    <div class="text-center text-white">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <h5>Processing Batch Data...</h5>
+                        <p class="text-muted small">Running pipeline &amp; matrix allocations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right: Summary & Table Results ── -->
+        <div class="col-lg-8">
+            {% if summary %}
+            <div class="glass-card p-4 animate-fade-up">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <div>
+                        <h4 class="mb-1">Batch Outcomes</h4>
+                        <p class="text-muted small mb-0">Total applicants evaluated: <strong>{{ summary.total }}</strong></p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('download_batch_csv') }}" class="btn btn-sm btn-outline-light">
+                            <i class="fa-solid fa-file-csv me-1"></i> Download CSV
+                        </a>
+                        <a href="{{ url_for('download_batch_excel') }}" class="btn btn-sm btn-outline-success">
+                            <i class="fa-regular fa-file-excel me-1"></i> Download Excel
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Stats summary columns -->
+                <div class="row g-3 mb-4 text-center">
+                    <div class="col-6 col-sm-3">
+                        <div class="metric-card-mini py-3">
+                            <span class="text-muted small d-block">Approved Profiles</span>
+                            <strong class="fs-4 text-success">{{ summary.approved }}</strong>
+                            <span class="text-secondary small d-block">({{ summary.approval_rate }}%)</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="metric-card-mini py-3">
+                            <span class="text-muted small d-block">Decline / Review</span>
+                            <strong class="fs-4 text-danger">{{ summary.rejected }}</strong>
+                            <span class="text-secondary small d-block">({{ summary.rejection_rate }}%)</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="metric-card-mini py-3">
+                            <span class="text-muted small d-block">Average Score</span>
+                            <strong class="fs-4 text-primary">{{ summary.avg_score }}</strong>
+                            <span class="text-secondary small d-block">Out of 850</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="metric-card-mini py-3">
+                            <span class="text-muted small d-block">Average Prob.</span>
+                            <strong class="fs-4 text-info">{{ summary.avg_probability }}%</strong>
+                            <span class="text-secondary small d-block">Approval chance</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts breakdown cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-0 p-3">
+                            <h6 class="text-light mb-3">Decision Ratio</h6>
+                            <div style="position: relative; height: 160px;">
+                                <canvas id="ratioChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-0 p-3">
+                            <h6 class="text-light mb-3">Risk Band Allocations</h6>
+                            <div style="position: relative; height: 160px;">
+                                <canvas id="bandChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table View -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 text-light">Applicant Evaluation Records (showing first 100 entries)</h6>
+                    <div style="width: 220px;">
+                        <input type="text" id="tableSearchInput" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Search rows...">
+                    </div>
+                </div>
+                <div class="table-wrap rounded border border-secondary mb-3" style="overflow-x: auto; max-height: 400px;">
+                    {{ table_html|safe }}
+                </div>
+            </div>
+            {% else %}
+            <!-- Placeholder state -->
+            <div class="glass-card p-5 text-center d-flex flex-column align-items-center justify-content-center h-100 min-vh-50 animate-fade-up">
+                <div class="mb-4 text-muted">
+                    <i class="fa-solid fa-list-check fa-4x opacity-50"></i>
+                </div>
+                <h5>Batch Pipeline Standby</h5>
+                <p class="text-muted small max-w-350">Upload a CSV profile dataset on the left side to compile bulk classification parameters, dashboards and statistics reports.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const selectedArea = document.getElementById("selectedFileArea");
+        const nameLabel = document.getElementById("fileName");
+        const sizeLabel = document.getElementById("fileSize");
+        const btnRun = document.getElementById("btnRunBatch");
+        const form = document.getElementById("batchUploadForm");
+        const loader = document.getElementById("batchLoader");
+
+        if (dropZone) {
+            // Dragover
+            dropZone.addEventListener("dragover", function(e) {
+                e.preventDefault();
+                dropZone.classList.add("dragover");
+            });
+
+            // Dragleave
+            dropZone.addEventListener("dragleave", function(e) {
+                dropZone.classList.remove("dragover");
+            });
+
+            // Drop
+            dropZone.addEventListener("drop", function(e) {
+                e.preventDefault();
+                dropZone.classList.remove("dragover");
+                
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelection();
+                }
+            });
+
+            // Click trigger
+            dropZone.addEventListener("click", function() {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener("change", handleFileSelection);
+        }
+
+        if (form && loader) {
+            form.addEventListener("submit", function() {
+                loader.classList.add("active");
+            });
+        }
+
+        function handleFileSelection() {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                nameLabel.innerText = file.name;
+                sizeLabel.innerText = (file.size / 1024).toFixed(1) + " KB";
+                
+                dropZone.classList.add("d-none");
+                selectedArea.classList.remove("d-none");
+                btnRun.classList.remove("d-none");
+            }
+        }
+
+        // Charts configuration if data exists
+        {% if summary %}
+        const summaryData = {{ summary | tojson }};
+        
+        // Ratio Chart
+        const rCtx = document.getElementById("ratioChart").getContext("2d");
+        new Chart(rCtx, {
+            type: "pie",
+            data: {
+                labels: ["Approved", "Decline / Review"],
+                datasets: [{
+                    data: [summaryData.approved, summaryData.rejected],
+                    backgroundColor: ["#10b981", "#ef4444"],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "right",
+                        labels: { color: "#9ca3af" }
+                    }
+                }
+            }
+        });
+
+        // Risk Band Allocation Chart
+        const bCtx = document.getElementById("bandChart").getContext("2d");
+        const bands = summaryData.risk_counts;
+        new Chart(bCtx, {
+            type: "bar",
+            data: {
+                labels: Object.keys(bands),
+                datasets: [{
+                    data: Object.values(bands),
+                    backgroundColor: ["rgba(16, 185, 129, 0.7)", "rgba(59, 130, 246, 0.7)", "rgba(245, 158, 11, 0.7)", "rgba(239, 68, 68, 0.7)"],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: "#9ca3af" }, grid: { display: false } },
+                    y: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(255, 255, 255, 0.05)" } }
+                }
+            }
+        });
+        {% endif %}
+
+        // Real-time Search Filtration
+        const searchInput = document.getElementById("tableSearchInput");
+        if (searchInput) {
+            searchInput.addEventListener("input", function() {
+                const query = this.value.toLowerCase();
+                const rows = document.querySelectorAll(".result-table tbody tr");
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query) ? "" : "none";
+                });
+            });
+        }
+    });
+
+    function clearSelectedFile() {
+        const fileInput = document.getElementById("fileInput");
+        const dropZone = document.getElementById("dropZone");
+        const selectedArea = document.getElementById("selectedFileArea");
+        const btnRun = document.getElementById("btnRunBatch");
+
+        fileInput.value = "";
+        selectedArea.classList.add("d-none");
+        btnRun.classList.add("d-none");
+        dropZone.classList.remove("d-none");
+    }
+</script>
+{% endblock %}

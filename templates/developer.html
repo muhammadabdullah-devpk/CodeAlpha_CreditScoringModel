@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Developer Profile{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+    <div class="row g-4 justify-content-center">
+        <!-- ── Left Profile Card ── -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 text-center animate-fade-up">
+                <!-- Avatar block -->
+                <div class="avatar-wrapper mb-3 position-relative d-inline-block">
+                    <div class="developer-avatar-placeholder">
+                        <i class="fa-solid fa-user-tie fa-4x text-primary opacity-75"></i>
+                    </div>
+                    <span class="active-badge animate-pulse" title="Available for immediate hiring opportunities"></span>
+                </div>
+
+                <h3 class="mb-1 text-light">Muhammad Abdullah</h3>
+                <p class="text-primary mb-3">AI &amp; Machine Learning Engineer</p>
+                <p class="text-muted small">Specialized in production-grade MLOps pipelines, clean modular software architecture, and interactive data interfaces.</p>
+                
+                <hr class="border-secondary my-3">
+
+                <!-- Social and contact buttons -->
+                <div class="d-grid gap-2">
+                    <a href="https://github.com/muhammadabdullah-devpk" target="_blank" class="btn btn-glass w-100 text-start d-flex align-items-center justify-content-between">
+                        <span><i class="fa-brands fa-github text-light me-2"></i> GitHub profile</span>
+                        <i class="fa-solid fa-chevron-right text-muted fa-xs"></i>
+                    </a>
+                    <a href="https://linkedin.com/in/muhammadabdullah-devpk" target="_blank" class="btn btn-glass w-100 text-start d-flex align-items-center justify-content-between">
+                        <span><i class="fa-brands fa-linkedin-in text-primary me-2"></i> LinkedIn connection</span>
+                        <i class="fa-solid fa-chevron-right text-muted fa-xs"></i>
+                    </a>
+                    <a href="mailto:meharabdullah4337@gmail.com" class="btn btn-glass w-100 text-start d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-envelope text-warning me-2"></i> Email correspondence</span>
+                        <i class="fa-solid fa-chevron-right text-muted fa-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right Technical Summary ── -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100 animate-fade-up" style="animation-delay:.15s">
+                <h4 class="mb-4 text-light"><i class="fa-solid fa-code text-primary me-2"></i>Profile Details</h4>
+
+                <!-- Bio -->
+                <h5 class="section-group-title text-primary"><i class="fa-solid fa-user-check me-2"></i>Professional Summary</h5>
+                <p class="text-muted small mb-4">
+                    Experienced Full-Stack AI Engineer with a background in designing, training, and deploying scalable Machine Learning solutions. Skilled in architectural design patterns, dataset preprocessing pipelines, data-visualisation interfaces, and performance evaluation methodologies. Focuses on writing readable, testable, and maintainable application code.
+                </p>
+
+                <!-- Experience -->
+                <h5 class="section-group-title text-primary"><i class="fa-solid fa-briefcase me-2"></i>Employment Experience</h5>
+                <div class="timeline ps-3 border-start mb-4">
+                    <div class="timeline-item mb-3 position-relative">
+                        <span class="timeline-dot"></span>
+                        <strong class="text-light d-block small">Lead ML Engineer | Credit scoring pipeline builder</strong>
+                        <span class="text-muted small">June 2026 – Present | Remote</span>
+                        <p class="text-muted small mb-0">Designed and deployed predictive pipelines, engineered key financial indicators, resolved environment integration issues, and constructed visual analytics dashboards.</p>
+                    </div>
+                </div>
+
+                <!-- Education -->
+                <h5 class="section-group-title text-primary"><i class="fa-solid fa-graduation-cap me-2"></i>Academic Profile</h5>
+                <div class="timeline ps-3 border-start mb-4">
+                    <div class="timeline-item mb-3 position-relative">
+                        <span class="timeline-dot"></span>
+                        <strong class="text-light d-block small">Bachelor of Science in Computer Science</strong>
+                        <span class="text-muted small">Specialisation in Software Engineering and Intelligent Systems</span>
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <h5 class="section-group-title text-primary"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Technical Competence</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="skill-badge">Supervised Learning</span>
+                    <span class="skill-badge">Random Forest Classifier</span>
+                    <span class="skill-badge">Scikit-Learn</span>
+                    <span class="skill-badge">Pandas &amp; Numpy</span>
+                    <span class="skill-badge">Python 3.13</span>
+                    <span class="skill-badge">Flask Web App</span>
+                    <span class="skill-badge">SQL Databases</span>
+                    <span class="skill-badge">REST API Services</span>
+                    <span class="skill-badge">MLOps &amp; Docker</span>
+                    <span class="skill-badge">CSS Glassmorphism</span>
+                    <span class="skill-badge">Responsive UI Design</span>
+                    <span class="skill-badge">Git Version Control</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

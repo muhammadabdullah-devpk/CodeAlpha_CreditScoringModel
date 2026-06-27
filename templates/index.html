@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero Section ──────────────────────────────────────────────────────── -->
+<section class="hero-section">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="container-xl position-relative z-1">
+        <div class="row align-items-center min-vh-100 py-5">
+            <div class="col-lg-7">
+                <div class="hero-badge mb-4 animate-fade-up">
+                    <i class="fa-solid fa-sparkles me-2 text-warning"></i>
+                    Next-Generation Credit Intelligence
+                </div>
+                <h1 class="hero-headline animate-fade-up" style="animation-delay:.1s">
+                    Predict Credit<br>
+                    <span class="gradient-text">Worthiness</span><br>
+                    with AI
+                </h1>
+                <p class="hero-lead animate-fade-up" style="animation-delay:.2s">
+                    A production-grade credit scoring engine powered by Random Forest, feature engineering, threshold optimisation, and explainable AI — wrapped in a beautiful dashboard.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mt-4 animate-fade-up" style="animation-delay:.3s">
+                    <a href="{{ url_for('predict') }}" class="btn btn-gradient btn-lg px-4">
+                        <i class="fa-solid fa-bolt me-2"></i> Try Prediction
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-glass btn-lg px-4">
+                        <i class="fa-solid fa-chart-line me-2"></i> View Dashboard
+                    </a>
+                    <a href="{{ url_for('batch') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fa-solid fa-table me-2"></i> Batch Scoring
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 mt-5 mt-lg-0">
+                <!-- Metrics floating card grid -->
+                <div class="metrics-float-grid animate-fade-up" style="animation-delay:.4s">
+                    <div class="metric-float-card">
+                        <div class="mf-icon"><i class="fa-solid fa-bullseye"></i></div>
+                        <div class="mf-value">{{ '%.1f'|format(metrics.get('accuracy', 0)*100) }}%</div>
+                        <div class="mf-label">Accuracy</div>
+                    </div>
+                    <div class="metric-float-card metric-float-card--accent">
+                        <div class="mf-icon"><i class="fa-solid fa-wave-square"></i></div>
+                        <div class="mf-value">{{ metrics.get('roc_auc', 'N/A') }}</div>
+                        <div class="mf-label">ROC-AUC</div>
+                    </div>
+                    <div class="metric-float-card">
+                        <div class="mf-icon"><i class="fa-solid fa-crosshairs"></i></div>
+                        <div class="mf-value">{{ '%.1f'|format(metrics.get('precision', 0)*100) }}%</div>
+                        <div class="mf-label">Precision</div>
+                    </div>
+                    <div class="metric-float-card metric-float-card--green">
+                        <div class="mf-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                        <div class="mf-value">{{ '%.1f'|format(metrics.get('f1_score', 0)*100) }}%</div>
+                        <div class="mf-label">F1-Score</div>
+                    </div>
+                    <div class="metric-float-card">
+                        <div class="mf-icon"><i class="fa-solid fa-shield-check"></i></div>
+                        <div class="mf-value">{{ '%.1f'|format(metrics.get('recall', 0)*100) }}%</div>
+                        <div class="mf-label">Recall</div>
+                    </div>
+                    <div class="metric-float-card metric-float-card--purple">
+                        <div class="mf-icon"><i class="fa-solid fa-database"></i></div>
+                        <div class="mf-value">8,000</div>
+                        <div class="mf-label">Training Samples</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hero-scroll-hint">
+        <i class="fa-solid fa-chevron-down"></i>
+    </div>
+</section>
+
+<!-- ── Features Section ───────────────────────────────────────────────────── -->
+<section class="section-padding" id="features">
+    <div class="container-xl">
+        <div class="section-header text-center mb-5">
+            <span class="section-eyebrow">What Makes It Special</span>
+            <h2 class="section-title">Production-Grade AI Features</h2>
+            <p class="section-lead">Built with the same engineering standards used at leading AI companies.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card animate-on-scroll">
+                    <div class="fc-icon fc-icon--blue"><i class="fa-solid fa-brain"></i></div>
+                    <h5>Random Forest Engine</h5>
+                    <p>200-tree ensemble with optimised depth and class-weighted training for robust credit classification.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card animate-on-scroll">
+                    <div class="fc-icon fc-icon--purple"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                    <h5>Explainable AI</h5>
+                    <p>Every prediction comes with plain-English positive factors, risk flags, and personalised recommendations.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card animate-on-scroll">
+                    <div class="fc-icon fc-icon--cyan"><i class="fa-solid fa-sliders"></i></div>
+                    <h5>Threshold Optimisation</h5>
+                    <p>Optimal decision threshold tuned on a held-out validation set using a blended F1-Recall-Precision score.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card animate-on-scroll">
+                    <div class="fc-icon fc-icon--green"><i class="fa-solid fa-table-list"></i></div>
+                    <h5>Batch Scoring</h5>
+                    <p>Upload any CSV file and score hundreds of applicants instantly. Download results as CSV or Excel.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card animate-on-scroll">
+                    <div class="fc-icon fc-icon--amber"><i class="fa-solid fa-code"></i></div>
+                    <h5>REST API</h5>
+                    <p>Clean JSON API endpoint for seamless integration with banking CRMs, loan origination systems, or mobile apps.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card animate-on-scroll">
+                    <div class="fc-icon fc-icon--red"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h5>Production Safety</h5>
+                    <p>Version-checked model persistence, singleton loader, thread-safe caching, and comprehensive error handling.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── How It Works ───────────────────────────────────────────────────────── -->
+<section class="section-padding bg-surface" id="how-it-works">
+    <div class="container-xl">
+        <div class="section-header text-center mb-5">
+            <span class="section-eyebrow">The Pipeline</span>
+            <h2 class="section-title">How It Works</h2>
+        </div>
+        <div class="how-it-works-grid">
+            <div class="hiw-step animate-on-scroll">
+                <div class="hiw-number">01</div>
+                <div class="hiw-icon"><i class="fa-solid fa-file-invoice"></i></div>
+                <h5>Input Applicant Data</h5>
+                <p>Enter financial details: income, debt, credit history, loan request, and employment profile via the form or REST API.</p>
+            </div>
+            <div class="hiw-connector"><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="hiw-step animate-on-scroll">
+                <div class="hiw-number">02</div>
+                <div class="hiw-icon"><i class="fa-solid fa-gears"></i></div>
+                <h5>Feature Engineering & Scoring</h5>
+                <p>The pipeline computes 4 derived ratios, normalises features, and passes them through the trained Random Forest classifier.</p>
+            </div>
+            <div class="hiw-connector"><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="hiw-step animate-on-scroll">
+                <div class="hiw-number">03</div>
+                <div class="hiw-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                <h5>Decision & Explanation</h5>
+                <p>Receive an Approve / Decline decision, credit score (300–850), risk band, approval probability, and full AI explanation.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Tech Stack ─────────────────────────────────────────────────────────── -->
+<section class="section-padding" id="tech-stack">
+    <div class="container-xl">
+        <div class="section-header text-center mb-5">
+            <span class="section-eyebrow">Under The Hood</span>
+            <h2 class="section-title">Technology Stack</h2>
+        </div>
+        <div class="tech-grid">
+            <div class="tech-badge"><i class="fa-brands fa-python"></i> Python 3.13</div>
+            <div class="tech-badge"><i class="fa-solid fa-fire"></i> Flask 3.0</div>
+            <div class="tech-badge"><i class="fa-solid fa-robot"></i> scikit-learn 1.9</div>
+            <div class="tech-badge"><i class="fa-solid fa-table"></i> pandas 3.0</div>
+            <div class="tech-badge"><i class="fa-solid fa-calculator"></i> NumPy 2.x</div>
+            <div class="tech-badge"><i class="fa-solid fa-chart-pie"></i> Chart.js 4</div>
+            <div class="tech-badge"><i class="fa-brands fa-bootstrap"></i> Bootstrap 5.3</div>
+            <div class="tech-badge"><i class="fa-solid fa-server"></i> Gunicorn</div>
+            <div class="tech-badge"><i class="fa-brands fa-docker"></i> Docker</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Why Choose CreditAI ────────────────────────────────────────────────── -->
+<section class="section-padding bg-surface" id="why-choose">
+    <div class="container-xl">
+        <div class="section-header text-center mb-5">
+            <span class="section-eyebrow">Key Advantages</span>
+            <h2 class="section-title">Why Choose CreditAI?</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="glass-card p-4">
+                    <h5 class="text-light mb-2"><i class="fa-solid fa-bolt text-success me-2"></i> Real-time Latency</h5>
+                    <p class="text-muted small mb-0">Under 15ms single-prediction execution latency, allowing interactive embedding directly in checkouts.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="glass-card p-4">
+                    <h5 class="text-light mb-2"><i class="fa-solid fa-scale-balanced text-primary me-2"></i> Balanced Sampling</h5>
+                    <p class="text-muted small mb-0">Engineered with balanced subsample weights to ensure high precision on highly skewed banking loan default distributions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Frequently Asked Questions ─────────────────────────────────────────── -->
+<section class="section-padding" id="faq">
+    <div class="container-xl" style="max-width: 800px;">
+        <div class="section-header text-center mb-5">
+            <span class="section-eyebrow">Clarifications</span>
+            <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+        <div class="accordion accordion-flush" id="faqAccordion">
+            <div class="accordion-item bg-transparent border-secondary">
+                <h2 class="accordion-header">
+                    <button class="accordion-button bg-transparent text-light collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        How is the Credit Score calculated?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body text-muted small">
+                        The model scales approval probability to standard FICO equivalent ranges (300 to 850) based on weighted parameters.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item bg-transparent border-secondary">
+                <h2 class="accordion-header">
+                    <button class="accordion-button bg-transparent text-light collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        Can I upload bulk portfolios?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body text-muted small">
+                        Yes, using the Batch Scoring page, you can drag &amp; drop any CSV aligned with our schema to calculate scores instantly.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Contact Section ────────────────────────────────────────────────────── -->
+<section class="section-padding bg-surface" id="contact">
+    <div class="container-xl" style="max-width: 600px;">
+        <div class="glass-card p-4 text-center">
+            <h4 class="text-light mb-3">Get In Touch</h4>
+            <p class="text-muted small">Questions about integration or performance? Contact Muhammad Abdullah via standard support routes.</p>
+            <a href="mailto:meharabdullah4337@gmail.com" class="btn btn-gradient px-4">
+                <i class="fa-solid fa-envelope me-1"></i> Send Email
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA Section ────────────────────────────────────────────────────────── -->
+<section class="cta-section">
+    <div class="cta-bg"></div>
+    <div class="container-xl position-relative z-1 text-center">
+        <h2 class="cta-title">Ready to Score an Applicant?</h2>
+        <p class="cta-lead">Experience production-quality ML inference in seconds.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ url_for('predict') }}" class="btn btn-white btn-lg px-5">
+                <i class="fa-solid fa-bolt me-2"></i> Start Predicting
+            </a>
+            <a href="{{ url_for('download_sample') }}" class="btn btn-outline-light btn-lg px-5">
+                <i class="fa-solid fa-download me-2"></i> Download Sample CSV
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
